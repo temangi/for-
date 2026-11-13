@@ -119,9 +119,11 @@
 
     .steps {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
-      gap: 18px;
-      margin: 0 0 26px;
+      gap: 14px 18px;
+      margin: 0 auto 26px;
+      max-width: 420px;
       color: var(--muted);
       font-size: 13px;
     }
@@ -251,6 +253,95 @@
 
     #garden { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
 
+    .phrase {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      padding: 100px 20px 36px;
+    }
+
+    .sentence {
+      min-height: 1.5em;
+      max-width: 16ch;
+      text-align: center;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-style: italic;
+      line-height: 1.15;
+    }
+
+    .words {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      max-width: 520px;
+    }
+
+    .word {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--cream);
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 17px;
+      cursor: pointer;
+      transition: opacity 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+    }
+
+    .word.used {
+      opacity: 0.28;
+      pointer-events: none;
+      border-color: rgba(230, 199, 154, 0.45);
+    }
+
+    .word.bad { animation: nudge 0.4s ease; }
+
+    @keyframes nudge {
+      0%, 100% { transform: translateX(0); }
+      30% { transform: translateX(-7px); }
+      70% { transform: translateX(7px); }
+    }
+
+    .sky-field { position: absolute; inset: 0; }
+
+    .constellation {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .star-bit {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      margin: -32px 0 0 -32px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .star-bit .dot {
+      width: 14px;
+      height: 14px;
+      margin: 24px auto 0;
+      border-radius: 50%;
+      background: rgba(248, 239, 233, 0.92);
+      box-shadow: 0 0 10px #fff, 0 0 24px rgba(240, 179, 192, 0.95);
+      transition: transform 0.45s ease, background 0.45s ease;
+    }
+
+    .star-bit.lit .dot {
+      transform: scale(1.7);
+      background: #f6d5dc;
+    }
+
     .clear, .toast-wrap {
       position: absolute;
       z-index: 6;
@@ -310,7 +401,15 @@
     .finale h2 { font-size: clamp(48px, 8vw, 80px); line-height: 0.9; text-align: center; margin-bottom: 8px; }
     .script { font-family: "Great Vibes", cursive; color: var(--rose); font-size: 42px; text-align: center; display: block; }
     .letter p + p { margin-top: 14px; }
-    .reasons { margin: 22px 0; padding: 0; list-style: none; }
+    .found-kicker {
+      margin-top: 22px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: var(--gold);
+    }
+
+    .reasons { margin: 8px 0 22px; padding: 0; list-style: none; }
     .reasons li { padding: 8px 0; border-top: 1px solid var(--line); color: var(--muted); }
     .finale .again-btn { display: block; margin: 8px auto 0; }
 
@@ -330,12 +429,14 @@
     <div class="card">
       <div class="seal" aria-hidden="true">♥</div>
       <p class="eyebrow">игра для тебя</p>
-      <h1>Три шага до письма</h1>
-      <p class="lede">Поймай сердца, открой пары и дойди до конверта. Там лежит то, что я давно хотел сказать.</p>
+      <h1>Пять шагов до письма</h1>
+      <p class="lede">Сердца, пары, сад, фраза и небо. Письмо лежит в самом конце, и я написал его заново.</p>
       <div class="steps">
         <span><b>01</b>сердца</span>
         <span><b>02</b>пары</span>
         <span><b>03</b>сад</span>
+        <span><b>04</b>фраза</span>
+        <span><b>05</b>небо</span>
       </div>
       <button class="play-btn" id="start" type="button">Играть</button>
     </div>
@@ -364,11 +465,13 @@
   <section class="finale" id="finale" hidden>
     <div class="card letter">
       <p class="eyebrow" style="text-align:center">письмо открыто</p>
-      <h2>Я тебя<br />люблю.</h2>
+      <h2>Выбираю<br />тебя.</h2>
       <p class="script" id="hello">для тебя</p>
       <p id="dear"></p>
-      <p>С тобой тишина не пустая. Она похожа на дом: можно молчать, можно смеяться слишком громко, можно быть усталой — и всё равно оставаться на своём месте.</p>
-      <p>Я не обещаю идеальные дни. Обещаю другое: в любой из них я на твоей стороне.</p>
+      <p>Я мог написать это в сообщении и отправить сразу. Не захотел. Захотел, чтобы ты сначала прошла короткую дорогу — и только потом открыла то, что я берегу не на праздник, а на обычный день.</p>
+      <p>С тобой мне проще быть настоящим. Ты смеёшься раньше шутки, молчишь так, что тишина становится тёплой, и остаёшься, когда вечер выходит длиннее, чем планировали. Это и есть мой дом. Не стены. Ты.</p>
+      <p>Если однажды станет шумно, тяжело или просто слишком тихо — вспомни эту страницу. Я уже выбрал тебя. Не на один хороший вечер. На все следующие, даже на те, которым ещё не придумали название.</p>
+      <p class="found-kicker">что встретилось по пути</p>
       <ul class="reasons" id="reasons"></ul>
       <span class="script" id="sign">твой</span>
       <button class="again-btn" id="again" type="button">Сыграть ещё раз</button>
@@ -417,9 +520,23 @@
       {
         id: "walk",
         level: "Уровень 3 · Сад",
-        hint: "Стрелки или палец. Собери розы и дойди до письма",
-        clearTitle: "Ты дошла",
-        clearText: "Письмо больше не спрятано."
+        hint: "Стрелки или палец. Собери розы и дойди до калитки",
+        clearTitle: "Сад позади",
+        clearText: "Дальше ещё два шага. Письмо ждёт в самом конце."
+      },
+      {
+        id: "phrase",
+        level: "Уровень 4 · Фраза",
+        hint: "Нажимай слова по порядку",
+        clearTitle: "Вот и вся фраза",
+        clearText: "Короткая. Зато каждое слово на своём месте."
+      },
+      {
+        id: "stars",
+        level: "Уровень 5 · Небо",
+        hint: "Зажги все звёзды",
+        clearTitle: "Небо собрано",
+        clearText: "Теперь можно открыть письмо."
       }
     ];
 
@@ -433,7 +550,7 @@
     const name = CONFIG.herName.trim();
 
     document.getElementById("hello").textContent = name ? "для тебя, " + name : "для тебя";
-    document.getElementById("dear").textContent = (name ? name.charAt(0).toUpperCase() + name.slice(1) : "Любимая") + ", иногда я ловлю себя на улыбке без причины. Потом понимаю: причина — ты.";
+    document.getElementById("dear").textContent = (name ? name.charAt(0).toUpperCase() + name.slice(1) : "Любимая") + ",";
     document.getElementById("sign").textContent = CONFIG.signature;
     document.title = name ? "Игра для тебя, " + name : "Игра для тебя";
 
@@ -491,6 +608,8 @@
       if (info.id === "catch") cleanup = startCatch(info);
       if (info.id === "memory") cleanup = startMemory(info);
       if (info.id === "walk") cleanup = startWalk(info);
+      if (info.id === "phrase") cleanup = startPhrase(info);
+      if (info.id === "stars") cleanup = startStars(info);
     }
 
     function startCatch(info) {
@@ -848,7 +967,7 @@
         ctx.fillStyle = "#e6c79a";
         ctx.font = "16px Manrope, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("письмо", goal.x, goal.y + 36);
+        ctx.fillText("дальше", goal.x, goal.y + 36);
 
         roses.forEach((rose) => {
           if (rose.taken) return;
@@ -945,6 +1064,105 @@
         window.removeEventListener("keydown", onKeyDown);
         window.removeEventListener("keyup", onKeyUp);
       };
+    }
+
+    function startPhrase(info) {
+      const order = ["я", "выбираю", "тебя", "каждый", "день"];
+      let step = 0;
+      setHud(info.level, info.hint, "0 из " + order.length);
+      const wrap = document.createElement("div");
+      wrap.className = "phrase";
+      const line = document.createElement("p");
+      line.className = "sentence";
+      line.textContent = "…";
+      const words = document.createElement("div");
+      words.className = "words";
+      const deck = order.map((word, index) => ({ word, index }));
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      deck.forEach((item) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "word";
+        button.textContent = item.word;
+        button.addEventListener("click", () => {
+          if (button.classList.contains("used")) return;
+          if (item.word !== order[step]) {
+            button.classList.remove("bad");
+            void button.offsetWidth;
+            button.classList.add("bad");
+            say("это слово будет чуть позже");
+            return;
+          }
+          button.classList.add("used");
+          step += 1;
+          line.textContent = order.slice(0, step).join(" ");
+          setHud(info.level, info.hint, step + " из " + order.length);
+          if (step === order.length) {
+            const full = order.join(" ");
+            if (!found.includes(full)) found.push(full);
+            say(full);
+            setTimeout(showClear, 650);
+          }
+        });
+        words.appendChild(button);
+      });
+      wrap.appendChild(line);
+      wrap.appendChild(words);
+      stage.appendChild(wrap);
+      return () => {};
+    }
+
+    function startStars(info) {
+      const wishes = [
+        "чтобы ты засыпала спокойно",
+        "чтобы в наших днях находился смех",
+        "чтобы ты знала: тебя здесь ждут",
+        "чтобы даже ссора кончалась ближе",
+        "чтобы мечта не откладывалась на потом",
+        "чтобы любовь была тем, как мы живём"
+      ];
+      const spots = [[22, 34], [50, 22], [78, 36], [30, 58], [70, 60], [50, 78]];
+      let lit = 0;
+      const points = [];
+      setHud(info.level, info.hint, "0 из " + spots.length);
+      const field = document.createElement("div");
+      field.className = "sky-field";
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "constellation");
+      svg.setAttribute("viewBox", "0 0 100 100");
+      const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      poly.setAttribute("fill", "none");
+      poly.setAttribute("stroke", "rgba(240,179,192,0.75)");
+      poly.setAttribute("stroke-width", "0.4");
+      poly.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(poly);
+      field.appendChild(svg);
+      spots.forEach((spot, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "star-bit";
+        button.style.left = spot[0] + "%";
+        button.style.top = spot[1] + "%";
+        button.setAttribute("aria-label", "Звезда " + (index + 1));
+        button.innerHTML = '<span class="dot"></span>';
+        button.addEventListener("click", () => {
+          if (button.classList.contains("lit")) return;
+          button.classList.add("lit");
+          points.push(spot[0] + "," + spot[1]);
+          poly.setAttribute("points", points.join(" "));
+          lit += 1;
+          say(wishes[index]);
+          if (!found.includes(wishes[index])) found.push(wishes[index]);
+          setHud(info.level, info.hint, lit + " из " + spots.length);
+          if (lit === spots.length) setTimeout(showClear, 700);
+        });
+        field.appendChild(button);
+      });
+      stage.appendChild(field);
+      return () => {};
     }
 
     document.getElementById("start").addEventListener("click", () => startLevel(0));
