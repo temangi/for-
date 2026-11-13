@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Для тебя</title>
+  <meta name="description" content="Маленькая игра, в конце которой лежит письмо." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Great+Vibes&family=Manrope:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #14080d;
+      --cream: #f8efe9;
+      --muted: #d7c2c6;
+      --rose: #f0b3c0;
+      --rose-deep: #c96b80;
+      --gold: #e6c79a;
+      --line: rgba(248, 239, 233, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    [hidden] { display: none !important; }
+
+    html, body { height: 100%; }
+
+    body {
+      min-height: 100dvh;
+      background:
+        radial-gradient(900px 520px at 85% -10%, rgba(201, 107, 128, 0.28), transparent 55%),
+        radial-gradient(700px 480px at -10% 20%, rgba(230, 199, 154, 0.12), transparent 50%),
+        var(--bg);
+      color: var(--cream);
+      font-family: Manrope, "Segoe UI", sans-serif;
+      font-weight: 300;
+      line-height: 1.6;
+      overflow: hidden;
+    }
+
+    button { font-family: inherit; }
+
+    button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+    .title, .finale {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 28px 20px;
+      text-align: center;
+    }
+
+    .card {
+      width: min(480px, 100%);
+      padding: 42px 32px 34px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      animation: rise 0.8s cubic-bezier(0.16, 0.84, 0.32, 1);
+    }
+
+    .seal {
+      width: 78px;
+      height: 78px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 35% 30%, #f3c2cc, #a33d55 64%, #6e2434);
+      box-shadow: 0 12px 30px rgba(163, 61, 85, 0.35);
+      font-size: 30px;
+      animation: breathe 3.4s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .eyebrow {
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    h1, h2, .script {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-weight: 500;
+    }
+
+    h1 { font-size: clamp(46px, 8vw, 72px); line-height: 0.92; margin-bottom: 14px; }
+
+    .title p, .finale p { color: var(--muted); }
+
+    .lede { margin: 8px auto 26px; max-width: 36ch; }
+
+    .play-btn, .next-btn, .again-btn {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      color: #2a1218;
+      background: linear-gradient(180deg, #f6d5dc, #e7a8b6);
+      border-radius: 999px;
+      padding: 14px 28px;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      transition: transform 0.4s cubic-bezier(0.16, 0.84, 0.32, 1), box-shadow 0.4s ease;
+    }
+
+    .play-btn:hover, .next-btn:hover, .again-btn:hover { transform: translateY(-1px); }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin: 0 0 26px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .steps b {
+      display: block;
+      color: var(--rose);
+      font-weight: 500;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 22px;
+    }
+
+    #play {
+      position: relative;
+      height: 100dvh;
+      background:
+        radial-gradient(520px 340px at 50% 110%, rgba(201, 107, 128, 0.22), transparent 70%),
+        radial-gradient(420px 280px at 80% 0%, rgba(230, 199, 154, 0.08), transparent 70%);
+    }
+
+    .hud {
+      position: absolute;
+      z-index: 4;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 18px 22px 10px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(20, 8, 13, 0.72), transparent);
+    }
+
+    #hud-level {
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: var(--gold);
+    }
+
+    #hud-hint { color: var(--muted); font-size: 14px; margin-top: 4px; max-width: 46ch; }
+
+    #hud-count {
+      font-family: Manrope, sans-serif;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      padding-top: 4px;
+    }
+
+    #stage { position: absolute; inset: 0; }
+    #stage.enter { animation: rise 0.65s cubic-bezier(0.16, 0.84, 0.32, 1); }
+
+    .field { position: absolute; inset: 0; overflow: hidden; }
+
+    .heart-bit {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      margin-left: -34px;
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      color: #fff8f6;
+      font-size: 28px;
+      background: radial-gradient(circle at 35% 30%, #ffd7e0, #c96b80 70%);
+      box-shadow: 0 10px 26px rgba(201, 107, 128, 0.4);
+      will-change: transform, opacity;
+    }
+
+    .board {
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 148px));
+      grid-auto-rows: 148px;
+      gap: 14px;
+      justify-content: center;
+      align-content: center;
+      padding: 92px 16px 28px;
+    }
+
+    .mem {
+      height: 100%;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--cream);
+      cursor: pointer;
+      perspective: 900px;
+      animation: rise 0.6s cubic-bezier(0.16, 0.84, 0.32, 1) both;
+    }
+
+    .mem-inner {
+      position: relative;
+      display: block;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.7s cubic-bezier(0.16, 0.84, 0.32, 1);
+    }
+
+    .mem.up .mem-inner,
+    .mem.matched .mem-inner { transform: rotateY(180deg); }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      backface-visibility: hidden;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 32px;
+    }
+
+    .face.back { color: var(--rose); font-size: 28px; }
+    .face.front {
+      transform: rotateY(180deg);
+      background: linear-gradient(180deg, rgba(201, 107, 128, 0.28), rgba(255,255,255,0.04));
+      border-color: rgba(240, 179, 192, 0.5);
+    }
+    .mem.matched .face.front { color: var(--gold); }
+
+    #garden { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+
+    .clear, .toast-wrap {
+      position: absolute;
+      z-index: 6;
+      left: 0;
+      right: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .clear {
+      inset: 0;
+      background: rgba(12, 6, 9, 0.78);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    .clear.is-in {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .clear .sheet {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 0.84, 0.32, 1);
+    }
+
+    .clear.is-in .sheet {
+      opacity: 1;
+      transform: none;
+    }
+
+    .clear h2 { font-size: clamp(40px, 6vw, 68px); line-height: 0.95; margin-bottom: 10px; }
+    .clear p { color: var(--muted); max-width: 36ch; margin-bottom: 22px; }
+
+    .toast-wrap { top: auto; bottom: 28px; pointer-events: none; }
+    #toast {
+      min-height: 1.4em;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-size: clamp(22px, 3vw, 32px);
+      text-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 0.84, 0.32, 1);
+    }
+
+    #toast.show { opacity: 1; transform: none; }
+
+    .finale { height: 100dvh; overflow: auto; align-items: start; }
+    .finale .card { margin: 24px 0; text-align: left; }
+    .finale h2 { font-size: clamp(48px, 8vw, 80px); line-height: 0.9; text-align: center; margin-bottom: 8px; }
+    .script { font-family: "Great Vibes", cursive; color: var(--rose); font-size: 42px; text-align: center; display: block; }
+    .letter p + p { margin-top: 14px; }
+    .reasons { margin: 22px 0; padding: 0; list-style: none; }
+    .reasons li { padding: 8px 0; border-top: 1px solid var(--line); color: var(--muted); }
+    .finale .again-btn { display: block; margin: 8px auto 0; }
+
+    @media (max-width: 640px) {
+      .board { grid-template-columns: repeat(2, minmax(0, 150px)); grid-auto-rows: 132px; }
+      .card { padding: 32px 20px 26px; }
+      .steps { gap: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <section class="title" id="title">
+    <div class="card">
+      <div class="seal" aria-hidden="true">♥</div>
+      <p class="eyebrow">игра для тебя</p>
+      <h1>Три шага до письма</h1>
+      <p class="lede">Поймай сердца, открой пары и дойди до конверта. Там лежит то, что я давно хотел сказать.</p>
+      <div class="steps">
+        <span><b>01</b>сердца</span>
+        <span><b>02</b>пары</span>
+        <span><b>03</b>сад</span>
+      </div>
+      <button class="play-btn" id="start" type="button">Играть</button>
+    </div>
+  </section>
+
+  <section id="play" hidden>
+    <header class="hud">
+      <div>
+        <p id="hud-level"></p>
+        <p id="hud-hint"></p>
+      </div>
+      <p id="hud-count"></p>
+    </header>
+    <div id="stage"></div>
+    <div class="toast-wrap"><p id="toast" aria-live="polite"></p></div>
+    <div class="clear" id="clear">
+      <div class="sheet">
+        <p class="eyebrow">уровень пройден</p>
+        <h2 id="clear-title"></h2>
+        <p id="clear-text"></p>
+        <button class="next-btn" id="next" type="button">Дальше</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="finale" id="finale" hidden>
+    <div class="card letter">
+      <p class="eyebrow" style="text-align:center">письмо открыто</p>
+      <h2>Я тебя<br />люблю.</h2>
+      <p class="script" id="hello">для тебя</p>
+      <p id="dear"></p>
+      <p>С тобой тишина не пустая. Она похожа на дом: можно молчать, можно смеяться слишком громко, можно быть усталой — и всё равно оставаться на своём месте.</p>
+      <p>Я не обещаю идеальные дни. Обещаю другое: в любой из них я на твоей стороне.</p>
+      <ul class="reasons" id="reasons"></ul>
+      <span class="script" id="sign">твой</span>
+      <button class="again-btn" id="again" type="button">Сыграть ещё раз</button>
+    </div>
+  </section>
+
+  <script>
+    const CONFIG = {
+      herName: "любимая",
+      signature: "твой"
+    };
+
+    const phrases = [
+      ["смех", "Он начинается раньше шутки и остаётся после."],
+      ["дом", "Рядом с тобой даже тишина становится местом, куда хочется вернуться."],
+      ["глаза", "В них я узнаю твоё настроение раньше слов."],
+      ["чай", "Мне нужны не только праздники. Мне нужны вторники и чай на двоих."]
+    ];
+
+    const catchLines = [
+      "за твой смех",
+      "за спокойные вечера",
+      "за то, как ты смотришь",
+      "за заботу в мелочах",
+      "за обычный вторник",
+      "за голос в сообщении",
+      "за то, что ты есть",
+      "за все дни впереди"
+    ];
+
+    const levels = [
+      {
+        id: "catch",
+        level: "Уровень 1 · Сердца",
+        hint: "Нажимай на сердца, пока они плывут вверх",
+        clearTitle: "Все сердца у тебя",
+        clearText: "Я оставлял их по пути. Ты собрала каждое."
+      },
+      {
+        id: "memory",
+        level: "Уровень 2 · Пары",
+        hint: "Открой две карточки с одним словом",
+        clearTitle: "Четыре слова",
+        clearText: "И все они — про тебя."
+      },
+      {
+        id: "walk",
+        level: "Уровень 3 · Сад",
+        hint: "Стрелки или палец. Собери розы и дойди до письма",
+        clearTitle: "Ты дошла",
+        clearText: "Письмо больше не спрятано."
+      }
+    ];
+
+    const title = document.getElementById("title");
+    const play = document.getElementById("play");
+    const finale = document.getElementById("finale");
+    const stage = document.getElementById("stage");
+    const clearBox = document.getElementById("clear");
+    clearBox.inert = true;
+    const toast = document.getElementById("toast");
+    const name = CONFIG.herName.trim();
+
+    document.getElementById("hello").textContent = name ? "для тебя, " + name : "для тебя";
+    document.getElementById("dear").textContent = (name ? name.charAt(0).toUpperCase() + name.slice(1) : "Любимая") + ", иногда я ловлю себя на улыбке без причины. Потом понимаю: причина — ты.";
+    document.getElementById("sign").textContent = CONFIG.signature;
+    document.title = name ? "Игра для тебя, " + name : "Игра для тебя";
+
+    const found = [];
+    let levelIndex = 0;
+    let cleanup = () => {};
+    let toastStamp = 0;
+    let toastText = "";
+
+    function show(screen) {
+      title.hidden = screen !== "title";
+      play.hidden = screen !== "play";
+      finale.hidden = screen !== "finale";
+    }
+
+    function say(text) {
+      const now = performance.now();
+      if (text === toastText && now - toastStamp < 1500) return;
+      toastText = text;
+      toastStamp = now;
+      toast.textContent = text;
+      toast.classList.remove("show");
+      void toast.offsetWidth;
+      toast.classList.add("show");
+    }
+
+    function setHud(level, hint, count) {
+      document.getElementById("hud-level").textContent = level;
+      document.getElementById("hud-hint").textContent = hint;
+      document.getElementById("hud-count").textContent = count;
+    }
+
+    function showClear() {
+      const info = levels[levelIndex];
+      document.getElementById("clear-title").textContent = info.clearTitle;
+      document.getElementById("clear-text").textContent = info.clearText;
+      clearBox.classList.add("is-in");
+      clearBox.inert = false;
+    }
+
+    function startLevel(index) {
+      cleanup();
+      cleanup = () => {};
+      levelIndex = index;
+      clearBox.classList.remove("is-in");
+      clearBox.inert = true;
+      toast.textContent = "";
+      toast.classList.remove("show");
+      stage.innerHTML = "";
+      stage.classList.remove("enter");
+      void stage.offsetWidth;
+      stage.classList.add("enter");
+      show("play");
+      const info = levels[index];
+      if (info.id === "catch") cleanup = startCatch(info);
+      if (info.id === "memory") cleanup = startMemory(info);
+      if (info.id === "walk") cleanup = startWalk(info);
+    }
+
+    function startCatch(info) {
+      let caught = 0;
+      let alive = true;
+      const goal = catchLines.length;
+      const hearts = [];
+      setHud(info.level, info.hint, "0 из " + goal);
+      const field = document.createElement("div");
+      field.className = "field";
+      stage.appendChild(field);
+
+      function spawn() {
+        if (!alive || caught >= goal || hearts.length >= 4) return;
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "heart-bit";
+        el.textContent = "♥";
+        el.setAttribute("aria-label", "Сердце");
+        const item = {
+          el,
+          x: 12 + Math.random() * 76,
+          y: 68 + Math.random() * 24,
+          speed: 10 + Math.random() * 4,
+          sway: 18 + Math.random() * 22,
+          phase: Math.random() * Math.PI * 2
+        };
+        el.style.left = item.x + "%";
+        el.style.top = "0";
+        el.addEventListener("click", () => {
+          if (!alive || el.dataset.hit) return;
+          el.dataset.hit = "1";
+          const index = hearts.indexOf(item);
+          if (index >= 0) hearts.splice(index, 1);
+          el.style.transition = "transform 0.45s ease, opacity 0.45s ease";
+          el.style.opacity = "0";
+          el.style.transform = "translate3d(0, " + (item.y - 6) + "vh, 0) scale(1.4)";
+          setTimeout(() => el.remove(), 450);
+          caught += 1;
+          const line = catchLines[caught - 1];
+          if (!found.includes(line)) found.push(line);
+          say(line);
+          setHud(info.level, info.hint, caught + " из " + goal);
+          if (caught >= goal) {
+            alive = false;
+            setTimeout(showClear, 450);
+          }
+        });
+        hearts.push(item);
+        field.appendChild(el);
+      }
+
+      let last = 0;
+      let acc = 0;
+      let raf = 0;
+      function frame(now) {
+        if (!alive) return;
+        const dt = Math.min(0.032, last ? (now - last) / 1000 : 0.016);
+        last = now;
+        acc += dt;
+        if (acc > 0.9) {
+          acc = 0;
+          spawn();
+        }
+        for (let i = hearts.length - 1; i >= 0; i--) {
+          const item = hearts[i];
+          item.y -= item.speed * dt;
+          const drift = Math.sin(now / 900 + item.phase) * item.sway;
+          const fadeIn = Math.min(1, Math.max(0, (92 - item.y) / 14));
+          const fadeOut = Math.min(1, Math.max(0, (item.y + 8) / 16));
+          item.el.style.transform = "translate3d(" + drift + "px, " + item.y + "vh, 0)";
+          item.el.style.opacity = String(Math.min(fadeIn, fadeOut));
+          if (item.y < -12) {
+            item.el.remove();
+            hearts.splice(i, 1);
+          }
+        }
+        raf = requestAnimationFrame(frame);
+      }
+      spawn();
+      raf = requestAnimationFrame(frame);
+      return () => {
+        alive = false;
+        cancelAnimationFrame(raf);
+      };
+    }
+
+    function startMemory(info) {
+      let moves = 0;
+      let open = [];
+      let lock = false;
+      let matched = 0;
+      setHud(info.level, info.hint, "ходы 0");
+      const board = document.createElement("div");
+      board.className = "board";
+      const deck = phrases.flatMap(([word], index) => [
+        { word, id: index },
+        { word, id: index }
+      ]);
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      deck.forEach((item, index) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "mem";
+        card.style.animationDelay = index * 45 + "ms";
+        card.innerHTML = '<span class="mem-inner"><span class="face back">♥</span><span class="face front"></span></span>';
+        card.querySelector(".front").textContent = item.word;
+        card.addEventListener("click", () => {
+          if (lock || card.classList.contains("up") || card.classList.contains("matched")) return;
+          card.classList.add("up");
+          open.push({ card, item });
+          if (open.length < 2) return;
+          moves += 1;
+          setHud(info.level, info.hint, "ходы " + moves);
+          const [a, b] = open;
+          open = [];
+          if (a.item.id === b.item.id) {
+            a.card.classList.add("matched");
+            b.card.classList.add("matched");
+            matched += 1;
+            say(phrases[a.item.id][1]);
+            const line = phrases[a.item.id][1];
+            if (!found.includes(line)) found.push(line);
+            if (matched === phrases.length) setTimeout(showClear, 600);
+          } else {
+            lock = true;
+            setTimeout(() => {
+              a.card.classList.remove("up");
+              b.card.classList.remove("up");
+              lock = false;
+            }, 1100);
+          }
+        });
+        board.appendChild(card);
+      });
+      stage.appendChild(board);
+      return () => {};
+    }
+
+    function startWalk(info) {
+      const canvas = document.createElement("canvas");
+      canvas.id = "garden";
+      stage.appendChild(canvas);
+      const ctx = canvas.getContext("2d");
+      const world = { w: 2000, h: 1100 };
+      const player = { x: 150, y: 560, r: 16 };
+      const trees = [
+        { x: 400, y: 220, r: 70 },
+        { x: 470, y: 840, r: 86 },
+        { x: 730, y: 500, r: 92 },
+        { x: 1040, y: 230, r: 72 },
+        { x: 1120, y: 880, r: 78 },
+        { x: 1380, y: 370, r: 86 },
+        { x: 1620, y: 820, r: 68 },
+        { x: 1740, y: 250, r: 60 }
+      ];
+      const roses = [
+        { x: 330, y: 560, r: 18, text: "за твой смех", taken: false },
+        { x: 620, y: 250, r: 18, text: "за спокойные вечера", taken: false },
+        { x: 980, y: 760, r: 18, text: "за то, как ты заботишься", taken: false },
+        { x: 1560, y: 590, r: 18, text: "за все обычные дни", taken: false }
+      ];
+      const goal = { x: 1860, y: 540, r: 34 };
+      const keys = new Set();
+      let pointer = null;
+      let alive = true;
+      let won = false;
+      let last = 0;
+      const cam = { x: 0, y: 0 };
+      const vel = { x: 0, y: 0 };
+      const view = { w: 800, h: 600 };
+      const sparks = [];
+      let aim = 0;
+      let snap = true;
+
+      function resize() {
+        const rect = stage.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        view.w = rect.width;
+        view.h = rect.height;
+        canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+        canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+        canvas.style.width = rect.width + "px";
+        canvas.style.height = rect.height + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function blocked(x, y) {
+        return trees.some((tree) => Math.hypot(x - tree.x, y - tree.y) < tree.r + player.r - 2);
+      }
+
+      function moveBy(dx, dy) {
+        const nx = Math.max(player.r, Math.min(world.w - player.r, player.x + dx));
+        const ny = Math.max(player.r, Math.min(world.h - player.r, player.y + dy));
+        if (!blocked(nx, player.y)) player.x = nx;
+        if (!blocked(player.x, ny)) player.y = ny;
+      }
+
+      function hudCount() {
+        const got = roses.filter((rose) => rose.taken).length;
+        setHud(info.level, info.hint, got + "/" + roses.length);
+      }
+
+      function burst(x, y) {
+        for (let i = 0; i < 12; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const v = 30 + Math.random() * 80;
+          sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.7 });
+        }
+      }
+
+      function finish() {
+        if (won) return;
+        won = true;
+        alive = false;
+        roses.forEach((rose) => {
+          if (!found.includes(rose.text)) found.push(rose.text);
+        });
+        setTimeout(showClear, 400);
+      }
+
+      function update(dt) {
+        let ix = 0;
+        let iy = 0;
+        if (keys.has("arrowleft") || keys.has("a")) ix -= 1;
+        if (keys.has("arrowright") || keys.has("d")) ix += 1;
+        if (keys.has("arrowup") || keys.has("w")) iy -= 1;
+        if (keys.has("arrowdown") || keys.has("s")) iy += 1;
+        let tx = 0;
+        let ty = 0;
+        const speed = 240;
+        if (ix || iy) {
+          const len = Math.hypot(ix, iy);
+          tx = (ix / len) * speed;
+          ty = (iy / len) * speed;
+        } else if (pointer) {
+          const dx = pointer.x - player.x;
+          const dy = pointer.y - player.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 18) {
+            const ease = Math.min(1, dist / 140);
+            tx = (dx / dist) * speed * ease;
+            ty = (dy / dist) * speed * ease;
+          } else pointer = null;
+        }
+        const glide = 1 - Math.exp(-dt * 6);
+        vel.x += (tx - vel.x) * glide;
+        vel.y += (ty - vel.y) * glide;
+        if (Math.hypot(vel.x, vel.y) > 2) moveBy(vel.x * dt, vel.y * dt);
+
+        roses.forEach((rose) => {
+          if (!rose.taken && Math.hypot(player.x - rose.x, player.y - rose.y) < 40) {
+            rose.taken = true;
+            burst(rose.x, rose.y);
+            say(rose.text);
+            hudCount();
+          }
+        });
+
+        if (Math.hypot(player.x - goal.x, player.y - goal.y) < goal.r + player.r) {
+          if (roses.every((rose) => rose.taken)) finish();
+          else say("Сначала все четыре розы");
+        }
+
+        const camX = player.x - view.w / 2;
+        const camY = player.y - view.h / 2;
+        if (snap) {
+          cam.x = camX;
+          cam.y = camY;
+          snap = false;
+        } else {
+          const follow = 1 - Math.exp(-dt * 2.6);
+          cam.x += (camX - cam.x) * follow;
+          cam.y += (camY - cam.y) * follow;
+        }
+        const nextRose = roses.find((rose) => !rose.taken) || goal;
+        const targetAng = Math.atan2(nextRose.y - player.y, nextRose.x - player.x);
+        let turn = targetAng - aim;
+        while (turn > Math.PI) turn -= Math.PI * 2;
+        while (turn < -Math.PI) turn += Math.PI * 2;
+        aim += turn * (1 - Math.exp(-dt * 5));
+        if (world.w <= view.w) cam.x = (world.w - view.w) / 2;
+        else cam.x = Math.max(0, Math.min(world.w - view.w, cam.x));
+        if (world.h <= view.h) cam.y = (world.h - view.h) / 2;
+        else cam.y = Math.max(0, Math.min(world.h - view.h, cam.y));
+
+        for (let i = sparks.length - 1; i >= 0; i--) {
+          const spark = sparks[i];
+          spark.life -= dt;
+          spark.x += spark.vx * dt;
+          spark.y += spark.vy * dt;
+          if (spark.life <= 0) sparks.splice(i, 1);
+        }
+      }
+
+      function heart(x, y, size, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(size, size);
+        ctx.beginPath();
+        ctx.moveTo(0, 3);
+        ctx.bezierCurveTo(-8, -6, -16, -2, 0, 10);
+        ctx.bezierCurveTo(16, -2, 8, -6, 0, 3);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function draw(time) {
+        ctx.clearRect(0, 0, view.w, view.h);
+        const sky = ctx.createLinearGradient(0, 0, 0, view.h);
+        sky.addColorStop(0, "#311422");
+        sky.addColorStop(1, "#12070c");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, view.w, view.h);
+        ctx.save();
+        ctx.translate(-cam.x, -cam.y);
+
+        ctx.fillStyle = "rgba(255, 214, 170, 0.9)";
+        ctx.beginPath();
+        ctx.arc(1680, 150, 36, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let i = 0; i < 5; i++) {
+          ctx.fillStyle = "rgba(90, 36, 52, 0.35)";
+          ctx.beginPath();
+          ctx.ellipse(280 + i * 380, 620, 180, 70, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        trees.forEach((tree) => {
+          ctx.fillStyle = "#2a141c";
+          ctx.beginPath();
+          ctx.arc(tree.x, tree.y, tree.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(240, 179, 192, 0.85)";
+          for (let i = 0; i < 7; i++) {
+            const a = (i / 7) * Math.PI * 2 + time * 0.2;
+            ctx.beginPath();
+            ctx.arc(tree.x + Math.cos(a) * tree.r * 0.45, tree.y + Math.sin(a) * tree.r * 0.45, 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+
+        const pulse = 0.85 + Math.sin(time * 3) * 0.15;
+        ctx.strokeStyle = "rgba(230, 199, 154, " + (0.35 + pulse * 0.4) + ")";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(goal.x, goal.y, 48 + pulse * 10, 0, Math.PI * 2);
+        ctx.stroke();
+        heart(goal.x, goal.y - 8, 1.7, "#f0b3c0");
+        ctx.fillStyle = "#e6c79a";
+        ctx.font = "16px Manrope, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("письмо", goal.x, goal.y + 36);
+
+        roses.forEach((rose) => {
+          if (rose.taken) return;
+          heart(rose.x, rose.y, 1.7 + Math.sin(time * 4 + rose.x) * 0.12, "#f6d5dc");
+        });
+
+        const bob = Math.sin(time * 2.4) * 2;
+        ctx.save();
+        ctx.translate(player.x + Math.cos(aim) * 36, player.y + bob + Math.sin(aim) * 36);
+        ctx.rotate(aim);
+        ctx.fillStyle = "rgba(230, 199, 154, 0.9)";
+        ctx.beginPath();
+        ctx.moveTo(8, 0);
+        ctx.lineTo(-6, 5);
+        ctx.lineTo(-6, -5);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = "#fff6f4";
+        ctx.shadowColor = "#f0b3c0";
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y + bob, player.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        heart(player.x, player.y + bob - 1, 1, "#c96b80");
+
+        sparks.forEach((spark) => {
+          ctx.globalAlpha = Math.max(0, spark.life);
+          ctx.fillStyle = "#f6d5dc";
+          ctx.beginPath();
+          ctx.arc(spark.x, spark.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        });
+
+        ctx.restore();
+      }
+
+      function toWorld(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: ((event.clientX - rect.left) / rect.width) * view.w + cam.x,
+          y: ((event.clientY - rect.top) / rect.height) * view.h + cam.y
+        };
+      }
+
+      function onKeyDown(event) {
+        const key = event.key.toLowerCase();
+        if (["arrowleft", "arrowright", "arrowup", "arrowdown", "a", "d", "w", "s"].includes(key)) {
+          keys.add(key);
+          event.preventDefault();
+        }
+      }
+      function onKeyUp(event) {
+        keys.delete(event.key.toLowerCase());
+      }
+      function onDown(event) {
+        pointer = toWorld(event);
+        canvas.setPointerCapture(event.pointerId);
+      }
+      function onMove(event) {
+        if (pointer) pointer = toWorld(event);
+      }
+      function onUp() { pointer = null; }
+
+      resize();
+      hudCount();
+      window.addEventListener("resize", resize);
+      window.addEventListener("keydown", onKeyDown);
+      window.addEventListener("keyup", onKeyUp);
+      canvas.addEventListener("pointerdown", onDown);
+      canvas.addEventListener("pointermove", onMove);
+      canvas.addEventListener("pointerup", onUp);
+      canvas.addEventListener("pointercancel", onUp);
+
+      draw(0);
+      let raf = 0;
+      function frame(now) {
+        if (!alive && sparks.length === 0) return;
+        const dt = Math.min(0.034, last ? (now - last) / 1000 : 0.016);
+        last = now;
+        if (alive) update(dt);
+        draw(now / 1000);
+        if (alive || sparks.length) raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
+
+      return () => {
+        alive = false;
+        won = true;
+        cancelAnimationFrame(raf);
+        window.removeEventListener("resize", resize);
+        window.removeEventListener("keydown", onKeyDown);
+        window.removeEventListener("keyup", onKeyUp);
+      };
+    }
+
+    document.getElementById("start").addEventListener("click", () => startLevel(0));
+    document.getElementById("next").addEventListener("click", () => {
+      if (levelIndex < levels.length - 1) startLevel(levelIndex + 1);
+      else {
+        cleanup();
+        const list = document.getElementById("reasons");
+        list.innerHTML = "";
+        (found.length ? found : catchLines).forEach((line) => {
+          const item = document.createElement("li");
+          item.textContent = line;
+          list.appendChild(item);
+        });
+        show("finale");
+      }
+    });
+    document.getElementById("again").addEventListener("click", () => {
+      found.length = 0;
+      show("title");
+    });
+  </script>
+</body>
+</html>
